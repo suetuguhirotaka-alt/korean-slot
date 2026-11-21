@@ -1,0 +1,581 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>韓国語作文スロット Master</title>
+  <style>
+    :root {
+      --bg-color: #0f172a;
+      --card-bg: #1e293b;
+      --accent-color: #38bdf8;
+      --gold: #fbbf24;
+      --text-main: #f8fafc;
+      --text-sub: #94a3b8;
+      --slot-bg: #0f172a;
+      --border-color: #334155;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    body {
+      background-color: var(--bg-color);
+      color: var(--text-main);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 10px;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 850px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    header {
+      text-align: center;
+      padding: 4px 0;
+    }
+
+    h1 {
+      font-size: 1.35rem;
+      color: var(--accent-color);
+    }
+
+    p.subtitle {
+      color: var(--text-sub);
+      font-size: 0.75rem;
+    }
+
+    .top-bar {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background: var(--card-bg);
+      padding: 6px 12px;
+      border-radius: 10px;
+      border: 1px solid var(--border-color);
+      gap: 8px;
+    }
+
+    .level-btn {
+      background: #334155;
+      color: var(--text-sub);
+      border: 1px solid var(--border-color);
+      padding: 4px 14px;
+      border-radius: 16px;
+      font-size: 0.8rem;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    .level-btn.active {
+      background: var(--accent-color);
+      color: #fff;
+      border-color: var(--accent-color);
+    }
+
+    .slot-machine {
+      background: var(--card-bg);
+      border: 2px solid var(--border-color);
+      border-radius: 12px;
+      padding: 12px;
+    }
+
+    .reels-container {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 6px;
+    }
+
+    @media (max-width: 640px) {
+      .reels-container {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+
+    .reel-box {
+      background: var(--slot-bg);
+      border: 2px solid var(--border-color);
+      border-radius: 8px;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+    }
+
+    .reel-box.active {
+      border-color: var(--accent-color);
+    }
+
+    .reel-box.locked {
+      border-color: var(--gold);
+    }
+
+    .reel-header {
+      background: #1e293b;
+      color: var(--text-sub);
+      font-size: 0.7rem;
+      text-align: center;
+      padding: 4px 2px;
+      border-bottom: 1px solid var(--border-color);
+      font-weight: bold;
+    }
+
+    .reel-viewport {
+      height: 80px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 4px;
+      position: relative;
+    }
+
+    .word-kr {
+      font-size: 1.05rem;
+      font-weight: bold;
+      color: var(--text-main);
+    }
+
+    .word-jp {
+      font-size: 0.68rem;
+      color: var(--text-sub);
+    }
+
+    .action-panel {
+      display: flex;
+      justify-content: center;
+      gap: 12px;
+      margin-top: 12px;
+    }
+
+    .btn {
+      background: #334155;
+      color: var(--text-main);
+      border: none;
+      padding: 10px 16px;
+      border-radius: 8px;
+      font-size: 0.88rem;
+      font-weight: bold;
+      cursor: pointer;
+      flex: 1;
+      max-width: 170px;
+    }
+
+    .btn-primary { background: #0284c7; color: #fff; }
+    .btn-stop { background: #e11d48; color: #fff; }
+
+    .btn:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
+
+    .result-card {
+      background: var(--card-bg);
+      border: 2px solid var(--gold);
+      border-radius: 12px;
+      padding: 12px;
+      display: none;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .sentence-box {
+      background: #0f172a;
+      padding: 10px;
+      border-radius: 8px;
+      text-align: center;
+    }
+
+    .sentence-kr {
+      font-size: 1.25rem;
+      font-weight: bold;
+      color: #ffffff;
+      margin: 2px 0;
+    }
+
+    .sentence-jp {
+      font-size: 0.85rem;
+      color: var(--text-sub);
+    }
+
+    .audio-btn {
+      background: #0284c7;
+      border: none;
+      color: white;
+      width: 26px;
+      height: 26px;
+      border-radius: 50%;
+      cursor: pointer;
+      margin-left: 6px;
+      vertical-align: middle;
+    }
+
+    .grammar-note {
+      font-size: 0.75rem;
+      color: #38bdf8;
+      background: rgba(56, 189, 248, 0.1);
+      padding: 4px 8px;
+      border-radius: 4px;
+    }
+    /* iPhone 12 / mobile Safari */
+    html { -webkit-text-size-adjust: 100%; }
+    body { min-height: 100vh; min-height: 100dvh; padding: max(10px, env(safe-area-inset-top)) max(10px, env(safe-area-inset-right)) max(16px, env(safe-area-inset-bottom)) max(10px, env(safe-area-inset-left)); }
+    button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; user-select: none; -webkit-user-select: none; }
+    .word-kr, .word-jp, .sentence-kr, .sentence-jp { overflow-wrap: anywhere; }
+    .reel-box { min-width: 0; }
+    .level-btn { min-height: 44px; padding: 8px 10px; }
+    .btn { min-height: 52px; }
+    .audio-btn { width: 44px; height: 44px; }
+    @media (max-width: 480px) {
+      .container { gap: 12px; }
+      .top-bar { flex-wrap: wrap; gap: 6px; }
+      .top-bar > span { width: 100%; text-align: center; }
+      .level-btn { flex: 1; font-size: .72rem; }
+      .slot-machine { padding: 9px; }
+      .reels-container { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+      .reel-viewport { min-height: 96px; height: auto; }
+      .word-kr { font-size: 1rem; line-height: 1.35; }
+      .word-jp { font-size: .75rem; line-height: 1.4; }
+      .action-panel { gap: 8px; }
+      .btn { padding: 12px 8px; font-size: .85rem; }
+      .sentence-kr { font-size: 1.1rem; line-height: 1.6; }
+      .sentence-jp { line-height: 1.6; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <header>
+    <h1>🎰 韓国語作文スロット Master</h1>
+    <p class="subtitle">動詞150超・大規模語彙・修復安定化モデル</p>
+  </header>
+
+  <div class="top-bar">
+    <span style="font-size:0.75rem; color:var(--text-sub);">難易度:</span>
+    <button class="level-btn active" id="btn-topik3" onclick="setLevel('topik3')">TOPIK 3級 (-기로 하다)</button>
+    <button class="level-btn" id="btn-topik4" onclick="setLevel('topik4')">TOPIK 4級 (-아/어야 되다)</button>
+  </div>
+
+  <div class="slot-machine">
+    <div class="reels-container">
+      <div class="reel-box" id="reel-box-0">
+        <div class="reel-header">① 主語 (주어)</div>
+        <div class="reel-viewport">
+          <div class="word-kr" id="reel-kr-0">저는</div>
+          <div class="word-jp" id="reel-jp-0">私は</div>
+        </div>
+      </div>
+
+      <div class="reel-box" id="reel-box-1">
+        <div class="reel-header">② いつ・副詞 (때/부사)</div>
+        <div class="reel-viewport">
+          <div class="word-kr" id="reel-kr-1">오늘</div>
+          <div class="word-jp" id="reel-jp-1">今日</div>
+        </div>
+      </div>
+
+      <div class="reel-box" id="reel-box-2">
+        <div class="reel-header">③ 目的語/対象 (목적어)</div>
+        <div class="reel-viewport">
+          <div class="word-kr" id="reel-kr-2">여권을</div>
+          <div class="word-jp" id="reel-jp-2">パスポートを</div>
+        </div>
+      </div>
+
+      <div class="reel-box" id="reel-box-3">
+        <div class="reel-header">④ 動詞・表現 (동사)</div>
+        <div class="reel-viewport">
+          <div class="word-kr" id="reel-kr-3">확인하기로 했어요</div>
+          <div class="word-jp" id="reel-jp-3">確認することにしました</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="action-panel">
+      <button class="btn btn-primary" id="start-btn" onclick="startSlot()">スタート (A)</button>
+      <button class="btn btn-stop" id="stop-btn" onclick="stopNextReel()" disabled>ストップ (Space)</button>
+    </div>
+  </div>
+
+  <div class="result-card" id="result-card">
+    <div style="font-size:0.8rem; color:var(--gold); font-weight:bold;">✨ 完成した文章</div>
+    <div class="sentence-box">
+      <div class="sentence-kr">
+        <span id="final-kr-text"></span>
+        <button class="audio-btn" onclick="speakSentence()" title="音声再生">🔊</button>
+      </div>
+      <div class="sentence-jp" id="final-jp-text"></div>
+    </div>
+    <div class="grammar-note" id="grammar-note"></div>
+  </div>
+</div>
+
+<script>
+var currentLevel = "topik3";
+var isSpinning = false;
+var currentStep = 0;
+var spinIntervals = [null, null, null, null];
+var selectedIndices = [0, 0, 0, 0];
+
+// ① 主語
+var subjects = [
+  { kr: "저는", jp: "私は" },
+  { kr: "친구는", jp: "友達は" },
+  { kr: "담당자는", jp: "担当者は" },
+  { kr: "선배는", jp: "先輩は" },
+  { kr: "저 사람은", jp: "あの人は" },
+  { kr: "패배자는", jp: "負け犬は" },
+  { kr: "높은 건물은", jp: "高い建物は" },
+  { kr: "새 시대는", jp: "新時代は" },
+  { kr: "미래는", jp: "未来は" },
+  { kr: "새로 온 비서는", jp: "新しく来た秘書は" },
+  { kr: "호랑이는", jp: "虎は" },
+  { kr: "사과는", jp: "リンゴは" },
+  { kr: "바늘은", jp: "針は" },
+  { kr: "면접관은", jp: "面接官は" },
+  { kr: "제 안경은", jp: "私のメガネは" },
+  { kr: "제 성격은", jp: "私の性格は" },
+  { kr: "우리는", jp: "私たちは" },
+  { kr: "이 녀석은", jp: "こいつは" }
+];
+
+// ② 副詞・時間・手段
+var timeMeans = [
+  { kr: "신용카드로", jp: "クレジットカードで" },
+  { kr: "현금으로", jp: "現金で" },
+  { kr: "항상", jp: "いつも" }, { kr: "자주", jp: "よく" },
+  { kr: "오늘", jp: "今日" }, { kr: "내일", jp: "明日" }, { kr: "어제", jp: "昨日" },
+  { kr: "갑자기", jp: "突然" }, { kr: "미리", jp: "前もって" }, { kr: "열심히", jp: "一生懸命" },
+  { kr: "마침내", jp: "ついに" }, { kr: "이제야", jp: "やっと" }, { kr: "담담하게", jp: "淡々と" },
+  { kr: "어제 꿈에서", jp: "昨日の夢で" },
+  { kr: "약방에 감초처럼", jp: "薬屋の甘草のように" },
+  { kr: "어두운 도시에", jp: "薄暗い都市で" },
+  { kr: "완벽하게", jp: "完璧に" },
+  { kr: "처음으로", jp: "初めて" },
+  { kr: "매일", jp: "毎日" },
+  { kr: "솔직하게", jp: "正直に" },
+  { kr: "당당하게", jp: "堂々と" }
+];
+
+// ③ 目的語
+var targets = [
+  { kr: "많은 돈", jp: "たくさんのお金", particleOverride: "을" },
+  { kr: "요금", jp: "料金" }, { kr: "수수료", jp: "手数料" },
+  { kr: "감기", jp: "風邪", particleOverride: "에" },
+  { kr: "주의", jp: "注意", particleOverride: "를" },
+  { kr: "신경", jp: "気 / 神経", particleOverride: "을" },
+  { kr: "운전면허증", jp: "運転免許証" }, { kr: "여권", jp: "パスポート" },
+  { kr: "신청서", jp: "申請書" }, { kr: "영수증", jp: "領収書" },
+  { kr: "비밀번호", jp: "暗証番号" }, { kr: "스케줄", jp: "スケジュール" },
+  { kr: "면접", jp: "面接" }, { kr: "지원 동기", jp: "志望動機" },
+  { kr: "자기소개", jp: "自己紹介" }, { kr: "그림의 떡", jp: "絵に描いた餅" },
+  { kr: "숨", jp: "息" }, { kr: "침묵", jp: "沈黙" }, { kr: "진실", jp: "真実" },
+  { kr: "커피", jp: "コーヒー" }, { kr: "성격", jp: "性格" }, { kr: "이름", jp: "名前" }
+];
+
+// ④ 動詞
+var rawVerbs = [
+  { basic: "가다", jp: "行く" }, { basic: "오다", jp: "来る" }, { basic: "먹다", jp: "食べる" }, { basic: "마시다", jp: "飲む" },
+  { basic: "보다", jp: "見る" }, { basic: "듣다", jp: "聞く" }, { basic: "읽다", jp: "読む" }, { basic: "쓰다", jp: "書く" },
+  { basic: "말하다", jp: "話す" }, { basic: "배우다", jp: "習う" }, { basic: "가르치다", jp: "教える" }, { basic: "기다리다", jp: "待つ" },
+  { basic: "만나다", jp: "会う" }, { basic: "찾다", jp: "探す" }, { basic: "잃어버리다", jp: "なくす" }, { basic: "만들다", jp: "作る" },
+  { basic: "고르다", jp: "選ぶ" }, { basic: "바꾸다", jp: "変える" }, { basic: "보내다", jp: "送る" }, { basic: "받다", jp: "受け取る" },
+  { basic: "빌리다", jp: "借りる" }, { basic: "빌려주다", jp: "貸す" }, { basic: "도착하다", jp: "到着する" }, { basic: "출발하다", jp: "出発する" },
+  { basic: "돌아가다", jp: "帰る" }, { basic: "준비하다", jp: "準備する" }, { basic: "신청하다", jp: "申請する" }, { basic: "확인하다", jp: "確認する" },
+  { basic: "취소하다", jp: "取消す" }, { basic: "결정하다", jp: "決定する" },
+  { basic: "내다", jp: "払う" }, { basic: "지불하다", jp: "支払う" }, { basic: "걸리다", jp: "かかる / ひく" },
+  { basic: "기울이다", jp: "傾ける / 払う" }, { basic: "초대하다", jp: "招待する" }, { basic: "치우다", jp: "片付ける" },
+  { basic: "주워서 넣다", jp: "拾って入れる" }, { basic: "최선을 다하다", jp: "最善を尽くす" }, { basic: "전화를 걸다", jp: "電話をかける" },
+  { basic: "전화를 받다", jp: "電話に出る" }, { basic: "울리다", jp: "鳴る / 鳴らす" }, { basic: "화내다", jp: "怒る" },
+  { basic: "붙어 있다", jp: "ついておる" }, { basic: "자리를 비우다", jp: "席を外す" }, { basic: "칼에 베이다", jp: "ナイフで切れる" },
+  { basic: "떠나버리다", jp: "旅立ってしまう" }, { basic: "일하다", jp: "働く" }, { basic: "자리를 지키다", jp: "席を守る" },
+  { basic: "비교하다", jp: "比較する" }, { basic: "놓치다", jp: "逃す" }, { basic: "행동하다", jp: "行動する" },
+  { basic: "집중하다", jp: "集中する" }, { basic: "긴장하다", jp: "緊張する" }, { basic: "활동하다", jp: "活動する" },
+  { basic: "고치다", jp: "直す" }, { basic: "줄이다", jp: "減らす" }, { basic: "지우다", jp: "消す" },
+  { basic: "없애다", jp: "なくす" }, { basic: "맡기다", jp: "任せる" }, { basic: "아끼다", jp: "節約する" },
+  { basic: "서두르다", jp: "急ぐ" }, { basic: "감동하다", jp: "感動する" }, { basic: "주문하다", jp: "注文する" },
+  { basic: "계산하다", jp: "会計する" }, { basic: "버스를 타다", jp: "バスに乗る" }, { basic: "내리다", jp: "降りる" },
+  { basic: "고민하다", jp: "悩む" }, { basic: "걱정하다", jp: "心配する" }, { basic: "부러워하다", jp: "うらやましがる" },
+  { basic: "기뻐하다", jp: "喜ぶ" }, { basic: "슬퍼하다", jp: "悲しむ" }, { basic: "익숙해지다", jp: "慣れる" },
+  { basic: "부담스럽다", jp: "負担に思う" }, { basic: "잊어버리다", jp: "忘れてしまう" }, { basic: "기억하다", jp: "覚える" },
+  { basic: "이해하다", jp: "理解する" }, { basic: "포기하다", jp: "諦める" }, { basic: "견디다", jp: "耐える" },
+  { basic: "버티다", jp: "持ちこたえる" }, { basic: "아쉬워하다", jp: "名残惜しむ" },
+  { basic: "물려가다", jp: "噛みつかれて運ばれる" }, { basic: "정신을 차리다", jp: "気を引き締める" }, { basic: "살다", jp: "生きる" },
+  { basic: "비가 오다", jp: "雨が降る" }, { basic: "따가워지다", jp: "ヒリヒリ痛む" }, { basic: "실이 가다", jp: "糸が通る" },
+  { basic: "굿이나 보다", jp: "お祓いでも見る" }, { basic: "떡이나 먹다", jp: "振る舞い餅でも食べる" }, { basic: "면접을 보다", jp: "面接を受ける" },
+  { basic: "합격하다", jp: "合格する" }, { basic: "숨 막히다", jp: "息が詰まる" }, { basic: "시작되다", jp: "始まる" },
+  { basic: "숨기다", jp: "隠す" }, { basic: "나쁜 짓을 하다", jp: "悪いことをする" }, { basic: "멈추다", jp: "止まる" },
+  { basic: "웃기다", jp: "笑わせる" }, { basic: "피어오르다", jp: "咲き始める" }, { basic: "불어오다", jp: "吹いてくる" },
+  { basic: "건네다", jp: "渡す / 声をかける" }, { basic: "전하다", jp: "伝える" }, { basic: "채우다", jp: "満たす" },
+  { basic: "담다", jp: "盛る / 込める" }, { basic: "쏟아지다", jp: "降り注ぐ" }, { basic: "주고받다", jp: "交わす" },
+  { basic: "닮다", jp: "似る" }, { basic: "지나가다", jp: "通り過ぎる" }, { basic: "반짝이다", jp: "輝く" },
+  { basic: "눈을 뜨다", jp: "目を開ける" }, { basic: "손을 잡다", jp: "手を握る" }, { basic: "눈을 감다", jp: "目を閉じる" },
+  { basic: "꿈을 꾸다", jp: "夢を見る" }, { basic: "소문을 내다", jp: "噂を立てる" }, { basic: "비밀을 지키다", jp: "秘密を守る" },
+  { basic: "용서를 구하다", jp: "許しを乞う" }, { basic: "시작을 알리다", jp: "始まりを告げる" }, { basic: "불을 켜다", jp: "火をつける" },
+  { basic: "부수다", jp: "ぶち破る" }, { basic: "겨누다", jp: "狙いを定める" }, { basic: "선을 넘다", jp: "線を越える" },
+  { basic: "새겨두다", jp: "刻んでおく" }, { basic: "소리치다", jp: "叫ぶ" }, { basic: "지켜보다", jp: "見守る" },
+  { basic: "마주하다", jp: "向き合う" }, { basic: "다다르다", jp: "たどり着く" }, { basic: "펼쳐지다", jp: "広がる" },
+  { basic: "깨뜨리다", jp: "打ち破る" }, { basic: "이끌다", jp: "導く" }, { basic: "돋보이다", jp: "ひときわ目立つ" }
+];
+
+function buildVerbs(level) {
+  return rawVerbs.map(function(v) {
+    var stem = v.basic.replace(/다$/, '');
+    if (level === 'topik3') {
+      return {
+        kr: v.basic,
+        pattern: stem + "기로 했어요",
+        jpPattern: v.jp + "ことにしました",
+        note: "TOPIK 3級文法【-기로 하다（〜することにする）】"
+      };
+    } else {
+      var conjugatedStem = stem;
+      if (stem.endsWith('하')) {
+        conjugatedStem = stem.replace(/하$/, '해');
+      } else {
+        if (['오', '가', '보', '내'].some(function(x) { return stem.endsWith(x); })) {
+          conjugatedStem = stem + '야';
+        } else {
+          conjugatedStem = stem + '어야';
+        }
+      }
+      return {
+        kr: v.basic,
+        pattern: conjugatedStem + " 돼요",
+        jpPattern: v.jp + "なければなりません",
+        note: "TOPIK 4級文法【-아/어야 되다（〜しなければならない）】"
+      };
+    }
+  });
+}
+
+function startSlot() {
+  if (isSpinning) return;
+  isSpinning = true;
+  currentStep = 0;
+  
+  var resCard = document.getElementById('result-card');
+  if (resCard) resCard.style.display = 'none';
+
+  document.getElementById('start-btn').disabled = true;
+  document.getElementById('stop-btn').disabled = false;
+
+  var currentVerbs = buildVerbs(currentLevel);
+
+  var boxes = document.querySelectorAll('.reel-box');
+  for (var i = 0; i < boxes.length; i++) {
+    boxes[i].className = 'reel-box';
+  }
+  document.getElementById('reel-box-0').className = 'reel-box active';
+
+  selectedIndices = [0, 0, 0, 0];
+  spinIntervals[0] = setInterval(function() { spinReel(0, subjects); }, 50);
+  spinIntervals[1] = setInterval(function() { spinReel(1, timeMeans); }, 60);
+  spinIntervals[2] = setInterval(function() { spinReel(2, targets); }, 55);
+  spinIntervals[3] = setInterval(function() { spinReel(3, currentVerbs); }, 50);
+}
+
+function spinReel(index, array) {
+  if (!array || array.length === 0) return;
+  var randIdx = Math.floor(Math.random() * array.length);
+  selectedIndices[index] = randIdx;
+  
+  var item = array[randIdx];
+  var krElem = document.getElementById('reel-kr-' + index);
+  var jpElem = document.getElementById('reel-jp-' + index);
+
+  if (index === 3) {
+    krElem.textContent = item.pattern || item.kr || "";
+    jpElem.textContent = item.jpPattern || item.jp || "";
+  } else {
+    krElem.textContent = item.kr || "";
+    jpElem.textContent = item.jp || "";
+  }
+}
+
+function stopNextReel() {
+  if (!isSpinning) return;
+  clearInterval(spinIntervals[currentStep]);
+  document.getElementById('reel-box-' + currentStep).className = 'reel-box locked';
+
+  currentStep++;
+  if (currentStep < 4) {
+    document.getElementById('reel-box-' + currentStep).className = 'reel-box active';
+  } else {
+    finishSlot();
+  }
+}
+
+function finishSlot() {
+  isSpinning = false;
+  document.getElementById('start-btn').disabled = false;
+  document.getElementById('stop-btn').disabled = true;
+
+  var currentVerbs = buildVerbs(currentLevel);
+
+  var subj = subjects[selectedIndices[0]] || subjects[0];
+  var time = timeMeans[selectedIndices[1]] || timeMeans[0];
+  var target = targets[selectedIndices[2]] || targets[0];
+  var verb = currentVerbs[selectedIndices[3]] || currentVerbs[0];
+
+  var particle = "";
+  if (target.particleOverride) {
+    particle = target.particleOverride;
+  } else {
+    var lastChar = target.kr.charCodeAt(target.kr.length - 1);
+    var hasBatchim = (lastChar >= 0xac00 && lastChar <= 0xd7a3) ? ((lastChar - 0xac00) % 28 !== 0) : false;
+    particle = hasBatchim ? "을" : "를";
+  }
+
+  document.getElementById('final-kr-text').textContent = subj.kr + " " + time.kr + " " + target.kr + particle + " " + verb.pattern + ".";
+  document.getElementById('final-jp-text').textContent = subj.jp + " " + time.jp + " " + target.jp + " " + verb.jpPattern + "。";
+  document.getElementById('grammar-note').textContent = "💡 文法解説: " + verb.note;
+  document.getElementById('result-card').style.display = 'flex';
+}
+
+function setLevel(lvl) {
+  if (isSpinning) return;
+  currentLevel = lvl;
+  document.getElementById('btn-topik3').className = lvl === 'topik3' ? 'level-btn active' : 'level-btn';
+  document.getElementById('btn-topik4').className = lvl === 'topik4' ? 'level-btn active' : 'level-btn';
+}
+
+function speakSentence() {
+  var text = document.getElementById('final-kr-text').textContent;
+  if ('speechSynthesis' in window) {
+    var utterance = new SpeechSynthesisUtterance(text);
+    utterance.lang = 'ko-KR';
+    utterance.rate = 0.85;
+    window.speechSynthesis.cancel();
+    window.speechSynthesis.speak(utterance);
+  }
+}
+
+window.onkeydown = function(e) {
+  if (e.target && /^(INPUT|TEXTAREA|SELECT)$/.test(e.target.tagName)) return;
+  var key = e.key ? e.key.toLowerCase() : '';
+  if (key === 'a' || key === 'ㅁ') {
+    if (!isSpinning) startSlot();
+  } else if (e.code === 'Space' || key === ' ') {
+    e.preventDefault();
+    if (isSpinning) {
+      stopNextReel();
+    }
+  }
+};
+</script>
+</body>
+</html>
