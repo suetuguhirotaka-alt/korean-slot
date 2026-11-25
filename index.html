@@ -621,4 +621,230 @@
     for (var i = 0; i < array.length; i++) {
       if (hist.indexOf(i) === -1) candidates.push(i);
     }
-    if (candidates.length === 0)
+    if (candidates.length === 0) {
+      recentHistory[reelIndex] = [];
+      return Math.floor(Math.random() * array.length);
+    }
+    return candidates[Math.floor(Math.random() * candidates.length)];
+  }
+
+  function recordHistory(reelIndex, chosenIdx) {
+    var hist = recentHistory[reelIndex];
+    hist.push(chosenIdx);
+    if (hist.length > HISTORY_LIMIT) hist.shift();
+  }
+
+  function spinReel(index, array) {
+    if (!array || array.length === 0) return;
+    var randIdx = Math.floor(Math.random() * array.length);
+    selectedIndices[index] = randIdx;
+    updateReelDisplay(index, array[randIdx]);
+  }
+
+  function updateReelDisplay(index, item) {
+    var krElem = document.getElementById('reel-kr-' + index);
+    var jpElem = document.getElementById('reel-jp-' + index);
+    renderTag(index, item);
+
+    if (index === 3) {
+      krElem.textContent = item.pattern || item.kr || "";
+      jpElem.textContent = item.jpPattern || item.jp || "";
+    } else {
+      krElem.textContent = item.kr || "";
+      jpElem.textContent = item.jp || "";
+    }
+  }
+
+  function applyHideJpState() {
+    for (var i = 0; i < 4; i++) {
+      var el = document.getElementById('reel-jp-' + i);
+      if (hideJp) el.classList.add('hidden');
+      else el.classList.remove('hidden');
+    }
+  }
+
+  function startSlot() {
+    if (isSpinning) return;
+
+    activeSteps = [];
+    for (var i = 0; i < 4; i++) {
+      if (!pinned[i]) activeSteps.push(i);
+    }
+
+    if (activeSteps.length === 0) {
+      finishSlot();
+      return;
+    }
+
+    isSpinning = true;
+    activePos = 0;
+
+    document.getElementById('result-card').style.display = 'none';
+    document.getElementById('start-btn').disabled = true;
+    document.getElementById('stop-btn').disabled = false;
+
+    var currentVerbs = buildVerbs(currentLevel);
+    var arrays = [subjects, timeMeans, targets, currentVerbs];
+    var speeds = [55, 65, 60, 55];
+
+    for (var j = 0; j < 4; j++) {
+      var box = document.getElementById('reel-box-' + j);
+      box.className = pinned[j] ? 'reel-box pinned' : 'reel-box';
+    }
+
+    document.getElementById('reel-box-' + activeSteps[0]).className = 'reel-box active';
+
+    activeSteps.forEach(function(reelIdx) {
+      spinIntervals[reelIdx] = setInterval(function() {
+        spinReel(reelIdx, arrays[reelIdx]);
+      }, speeds[reelIdx]);
+    });
+  }
+
+  function stopNextReel() {
+    if (!isSpinning) return;
+    var reelIdx = activeSteps[activePos];
+    clearInterval(spinIntervals[reelIdx]);
+
+    var currentVerbs = buildVerbs(currentLevel);
+    var arrays = [subjects, timeMeans, targets, currentVerbs];
+    var finalIdx = pickNonRepeatingIndex(reelIdx, arrays[reelIdx]);
+    selectedIndices[reelIdx] = finalIdx;
+    recordHistory(reelIdx, finalIdx);
+    updateReelDisplay(reelIdx, arrays[reelIdx][finalIdx]);
+
+    document.getElementById('reel-box-' + reelIdx).className = 'reel-box locked';
+
+    activePos++;
+    if (activePos < activeSteps.length) {
+      document.getElementById('reel-box-' + activeSteps[activePos]).className = 'reel-box active';
+    } else {
+      finishSlot();
+    }
+  }
+
+  function finishSlot() {
+    isSpinning = false;
+    document.getElementById('start-btn').disabled = false;
+    document.getElementById('stop-btn').disabled = true;
+
+    var currentVerbs = buildVerbs(currentLevel);
+    var subj = subjects[selectedIndices[0]] || subjects[0];
+    var time = timeMeans[selectedIndices[1]] || timeMeans[0];
+    var target = targets[selectedIndices[2]] || targets[0];
+    var verb = currentVerbs[selectedIndices[3]] || currentVerbs[0];
+
+    var particle = "";
+    if (target.particleOverride) {
+      particle = target.particleOverride;
+    } else {
+      var lastChar = target.kr.charCodeAt(target.kr.length - 1);
+      var hasBatchim = (lastChar >= 0xac00 && lastChar <= 0xd7a3) ? ((lastChar - 0xac00) % 28 !== 0) : false;
+      particle = hasBatchim ? "을" : "를";
+    }
+
+    document.getElementById('final-kr-text').textContent = subj.kr + " " + time.kr + " " + target.kr + particle + " " + verb.pattern + ".";
+    var finalJp = document.getElementById('final-jp-text');
+    finalJp.textContent = subj.jp + " " + time.jp + " " + target.jp + "を " + verb.jpPattern + "。";
+
+    var revealBtn = document.getElementById('reveal-btn');
+    if (hideJp) {
+      finalJp.classList.add('hidden');
+      revealBtn.style.display = 'inline-block';
+    } else {
+      finalJp.classList.remove('hidden');
+      revealBtn.style.display = 'none';
+    }
+
+    document.getElementById('grammar-note').textContent = "💡 文法解説: " + verb.note;
+    document.getElementById('result-card').style.display = 'flex';
+
+    if (autoTts) speakSentence();
+  }
+
+  function revealAnswer() {
+    document.getElementById('final-jp-text').classList.remove('hidden');
+    document.getElementById('reveal-btn').style.display = 'none';
+  }
+
+  function setLevel(lvl) {
+    if (isSpinning) return;
+    currentLevel = lvl;
+    document.getElementById('btn-topik3').className = lvl === 'topik3' ? 'level-btn active' : 'level-btn';
+    document.getElementById('btn-topik4').className = lvl === 'topik4' ? 'level-btn active' : 'level-btn';
+    var currentVerbs = buildVerbs(currentLevel);
+    updateReelDisplay(3, currentVerbs[selectedIndices[3]] || currentVerbs[0]);
+  }
+
+  function togglePin(idx) {
+    if (isSpinning) return;
+    pinned[idx] = !pinned[idx];
+    var btn = document.getElementById('pin-' + idx);
+    var box = document.getElementById('reel-box-' + idx);
+    if (pinned[idx]) {
+      btn.textContent = "🔒 固定中";
+      btn.classList.add('pinned');
+      box.className = 'reel-box pinned';
+    } else {
+      btn.textContent = "🔓 固定";
+      btn.classList.remove('pinned');
+      box.className = 'reel-box';
+    }
+  }
+
+  function speakSentence() {
+    var text = document.getElementById('final-kr-text').textContent;
+    if ('speechSynthesis' in window && text) {
+      window.speechSynthesis.cancel();
+      var utterance = new SpeechSynthesisUtterance(text);
+      utterance.lang = 'ko-KR';
+      utterance.rate = 0.85;
+      window.speechSynthesis.speak(utterance);
+    }
+  }
+
+  // イベント登録
+  document.getElementById('start-btn').addEventListener('click', startSlot);
+  document.getElementById('stop-btn').addEventListener('click', stopNextReel);
+  document.getElementById('btn-topik3').addEventListener('click', function() { setLevel('topik3'); });
+  document.getElementById('btn-topik4').addEventListener('click', function() { setLevel('topik4'); });
+  document.getElementById('audio-btn').addEventListener('click', speakSentence);
+  document.getElementById('reveal-btn').addEventListener('click', revealAnswer);
+
+  document.getElementById('btn-hide-jp').addEventListener('click', function() {
+    hideJp = !hideJp;
+    this.textContent = hideJp ? "🙈 和訳隠し: ON" : "🙈 和訳隠し: OFF";
+    this.classList.toggle('active', hideJp);
+    applyHideJpState();
+  });
+
+  document.getElementById('btn-auto-tts').addEventListener('click', function() {
+    autoTts = !autoTts;
+    this.textContent = autoTts ? "🔊 自動音声: ON" : "🔊 自動音声: OFF";
+    this.classList.toggle('active', autoTts);
+  });
+
+  for (var p = 0; p < 4; p++) {
+    (function(idx) {
+      document.getElementById('pin-' + idx).addEventListener('click', function() {
+        togglePin(idx);
+      });
+    })(p);
+  }
+
+  window.addEventListener('keydown', function(e) {
+    if (e.code === 'KeyA' || (e.key && (e.key.toLowerCase() === 'a' || e.key === 'ㅁ'))) {
+      if (!isSpinning) startSlot();
+    } else if (e.code === 'Space' || e.key === ' ') {
+      e.preventDefault();
+      if (isSpinning) stopNextReel();
+    } else if (e.code === 'KeyH') {
+      if (document.getElementById('reveal-btn').style.display !== 'none') {
+        revealAnswer();
+      }
+    }
+  });
+})();
+</script>
+</body>
+</html>
